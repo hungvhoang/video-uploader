@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: uploader
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/uploader}
+
+uploader:
+  s3:
+    endpoint: ${S3_ENDPOINT:http://localhost:4566}
+    region: ${AWS_REGION:us-east-1}
+    access-key: ${AWS_ACCESS_KEY_ID:test}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+    bucket: ${S3_BUCKET:default-storage}
+    path-style-access-enabled: true
+    presign-duration: 15m
+  upload:
+    stale-timeout: 24h
+    cleanup-interval: 1h
+    multipart:
+      part-size: 10MB
+      max-parts: 10000
