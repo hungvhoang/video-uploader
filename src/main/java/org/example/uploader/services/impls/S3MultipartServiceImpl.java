@@ -3,6 +3,8 @@ package org.example.uploader.services.impls;
 import org.example.uploader.configs.S3Properties;
 import org.example.uploader.dtos.CompletedPart;
 import org.example.uploader.services.S3MultipartService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
@@ -20,6 +22,8 @@ import java.util.List;
 @Component
 public class S3MultipartServiceImpl implements S3MultipartService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(S3MultipartServiceImpl.class);
+
     private final S3Client s3;
     private final S3Presigner presigner;
     private final S3Properties properties;
@@ -32,6 +36,8 @@ public class S3MultipartServiceImpl implements S3MultipartService {
 
     @Override
     public String initiate(String objectKey, String contentType) {
+        LOGGER.info("Sending CreateMultipartUpload to S3: bucket={}, objectKey={}",
+                properties.bucket(), objectKey);
         return s3.createMultipartUpload(CreateMultipartUploadRequest.builder()
                         .bucket(properties.bucket())
                         .key(objectKey)
@@ -57,6 +63,8 @@ public class S3MultipartServiceImpl implements S3MultipartService {
 
     @Override
     public void complete(String objectKey, String uploadId, List<CompletedPart> parts) {
+        LOGGER.info("Sending CompleteMultipartUpload to S3: bucket={}, objectKey={}, parts={}",
+                properties.bucket(), objectKey, parts.size());
         var awsParts = parts.stream()
                 .map(part -> software.amazon.awssdk.services.s3.model.CompletedPart.builder()
                         .partNumber(part.partNumber())
@@ -73,6 +81,8 @@ public class S3MultipartServiceImpl implements S3MultipartService {
 
     @Override
     public void abort(String objectKey, String uploadId) {
+        LOGGER.info("Sending AbortMultipartUpload to S3: bucket={}, objectKey={}",
+                properties.bucket(), objectKey);
         s3.abortMultipartUpload(AbortMultipartUploadRequest.builder()
                 .bucket(properties.bucket())
                 .key(objectKey)
@@ -82,6 +92,8 @@ public class S3MultipartServiceImpl implements S3MultipartService {
 
     @Override
     public URI presignPlayback(String objectKey) {
+        LOGGER.info("Generating presigned playback URL: bucket={}, objectKey={}",
+                properties.bucket(), objectKey);
         var presigned = presigner.presignGetObject(GetObjectPresignRequest.builder()
                         .signatureDuration(properties.presignDuration())
                         .getObjectRequest(builder -> builder.bucket(properties.bucket()).key(objectKey))

@@ -41,9 +41,11 @@ public class UploadMaintenanceServiceImpl implements UploadMaintenanceService {
         Instant now = Instant.now(clock);
         repository.findStaleInitiatedBefore(now.minus(staleTimeout)).forEach(video -> {
             try {
+                LOGGER.info("Cleaning up stale multipart upload: videoId={}", video.getId());
                 s3.abort(video.getObjectKey(), video.getUploadId());
                 video.markAborted("Upload expired", now);
                 repository.save(video);
+                LOGGER.info("Stale multipart upload aborted: videoId={}", video.getId());
             } catch (RuntimeException exception) {
                 LOGGER.warn("Could not clean up stale upload {}", video.getId(), exception);
             }

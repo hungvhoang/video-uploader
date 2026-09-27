@@ -18,7 +18,7 @@ mvn spring-boot:run
 
 Open `http://localhost:8080`.
 
-The browser uploads at most three parts concurrently. Each URL is signed immediately before use, and failed parts retry with exponential backoff. Spring Boot never receives the video bytes.
+The browser uploads at most three parts concurrently. The initiation response includes the first batch of up to 20 presigned URLs; larger uploads request later batches just in time. Failed parts retry with exponential backoff. Spring Boot never receives the video bytes.
 
 ## Upload Flow
 
@@ -33,10 +33,10 @@ flowchart LR
     API -->|2. CreateMultipartUpload| S3
     S3 -->|3. Upload ID| API
     API -->|4. Store INITIATED metadata| Mongo
-    API -->|5. Video ID and part plan| Browser
+    API -->|5. Video ID, part plan, first URL batch| Browser
 
-    Browser -->|6. Request part URL| API
-    API -->|7. Generate presigned URL| Browser
+    Browser -.->|6. Request next URL batch when needed| API
+    API -.->|7. Return presigned URL batch| Browser
     Browser ==>|8. PUT video part directly| S3
     S3 -->|9. Return ETag| Browser
 
@@ -50,6 +50,14 @@ flowchart LR
 ```
 
 The thick arrows carry video bytes directly between the browser and Floci. Spring Boot only coordinates upload state, signs URLs, completes the multipart upload, and stores metadata.
+
+## Backend Logs
+
+Run the application with `mvn spring-boot:run` to see INFO logs for multipart initiation, presigned URL batches, completion, cancellation, stale-upload cleanup, and playback URL generation.
+
+There is intentionally no Spring Boot log while a video part is being uploaded. The browser sends each `PUT` directly to Floci, so those requests appear in Floci's logs instead of the application logs.
+
+Open the browser developer tools and select the **Console** tab to see matching frontend messages prefixed with `[video-uploader]`. INFO messages show orchestration and URL batches, while DEBUG messages show individual direct-to-S3 part uploads without exposing presigned URLs or ETags.
 
 ## Floci CORS
 

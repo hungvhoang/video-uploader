@@ -5,6 +5,10 @@ spring:
     mongodb:
       uri: ${MONGODB_URI:mongodb://localhost:27017/uploader}
 
+logging:
+  level:
+    org.example.uploader: INFO
+
 uploader:
   s3:
     endpoint: ${S3_ENDPOINT:http://localhost:4566}

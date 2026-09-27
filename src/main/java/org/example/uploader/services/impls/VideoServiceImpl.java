@@ -8,12 +8,16 @@ import org.example.uploader.repos.VideoRepository;
 import org.example.uploader.services.S3MultipartService;
 import org.example.uploader.services.UploadService;
 import org.example.uploader.services.VideoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class VideoServiceImpl implements VideoService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VideoServiceImpl.class);
 
     private final VideoRepository repository;
     private final UploadService uploadService;
@@ -41,6 +45,7 @@ public class VideoServiceImpl implements VideoService {
         if (video.getStatus() != VideoStatus.READY) {
             throw new IllegalStateException("Video is not ready");
         }
+        LOGGER.info("Creating playback URL: videoId={}, objectKey={}", videoId, video.getObjectKey());
         return new PlaybackUrl(s3.presignPlayback(video.getObjectKey()).toString());
     }
 }

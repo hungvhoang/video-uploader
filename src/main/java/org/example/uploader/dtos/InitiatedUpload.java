@@ -1,4 +1,11 @@
 package org.example.uploader.dtos;
 
-public record InitiatedUpload(String videoId, long partSize, int partCount) {
+import java.util.List;
+
+public record InitiatedUpload(
+        String videoId,
+        long partSize,
+        int partCount,
+        List<PresignedPart> presignedParts
+) {
 }

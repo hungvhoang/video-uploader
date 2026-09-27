@@ -1,6 +1,7 @@
 package org.example.uploader.services.impls;
 
 import org.example.uploader.dtos.CompletedPart;
+import org.example.uploader.dtos.PresignedPart;
 import org.example.uploader.models.Video;
 import org.example.uploader.models.VideoStatus;
 import org.example.uploader.repos.VideoRepository;
@@ -46,12 +47,22 @@ class UploadServiceImplTest {
     @Test
     void initiatesAndCompletesMultipartUpload() {
         when(s3.initiate(startsWith("videos/"), eq("video/mp4"))).thenReturn("upload-123");
+        when(s3.presignPart(any(), eq("upload-123"), eq(1)))
+                .thenReturn(URI.create("http://localhost:4566/part-1"));
+        when(s3.presignPart(any(), eq("upload-123"), eq(2)))
+                .thenReturn(URI.create("http://localhost:4566/part-2"));
+        when(s3.presignPart(any(), eq("upload-123"), eq(3)))
+                .thenReturn(URI.create("http://localhost:4566/part-3"));
 
         var started = service.initiate("clip.mp4", "video/mp4", 21_000_000L);
 
         assertThat(started.videoId()).isNotBlank();
         assertThat(started.partSize()).isEqualTo(10L * 1024 * 1024);
         assertThat(started.partCount()).isEqualTo(3);
+        assertThat(started.presignedParts()).containsExactly(
+                new PresignedPart(1, "http://localhost:4566/part-1"),
+                new PresignedPart(2, "http://localhost:4566/part-2"),
+                new PresignedPart(3, "http://localhost:4566/part-3"));
 
         var videoCaptor = ArgumentCaptor.forClass(Video.class);
         verify(repository).save(videoCaptor.capture());
