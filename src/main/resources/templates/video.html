@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Video player</title>
+    <link rel="stylesheet" th:href="@{/css/application.css}">
+</head>
+<body>
+<main class="player-page">
+    <a href="/">Back to library</a>
+    <h1 id="video-title">Loading video...</h1>
+    <video id="video-player" controls playsinline></video>
+    <p id="player-error" class="error"></p>
+</main>
+<script>
+    const id = location.pathname.split('/').pop();
+    Promise.all([
+        fetch(`/api/videos/${id}`).then(response => response.ok ? response.json() : Promise.reject(response)),
+        fetch(`/api/videos/${id}/playback-url`).then(response => response.ok ? response.json() : Promise.reject(response))
+    ]).then(([video, playback]) => {
+        document.title = video.fileName;
+        document.getElementById('video-title').textContent = video.fileName;
+        document.getElementById('video-player').src = playback.url;
+    }).catch(() => {
+        document.getElementById('player-error').textContent = 'Unable to load this video.';
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Video storage</title>
+    <link rel="stylesheet" th:href="@{/css/application.css}">
+</head>
+<body>
+<main>
+    <header>
+        <p class="eyebrow">FLOCI OBJECT STORAGE</p>
+        <h1>Video library</h1>
+        <p>Upload large videos directly to S3 using resumable multipart transfers.</p>
+    </header>
+
+    <section class="upload-panel">
+        <label class="drop-zone" for="video-file">
+            <strong>Select a video</strong>
+            <span>MP4, WebM, MOV and other video formats</span>
+            <input id="video-file" type="file" accept="video/*">
+        </label>
+        <button id="upload-button" type="button">Upload video</button>
+        <button id="cancel-button" class="secondary" type="button" hidden>Cancel</button>
+        <div id="progress-wrap" hidden>
+            <div class="progress"><span id="progress-bar"></span></div>
+            <p id="upload-status"></p>
+        </div>
+    </section>
+
+    <section>
+        <div class="section-heading">
+            <h2>Ready to watch</h2>
+            <button id="refresh-button" class="text-button" type="button">Refresh</button>
+        </div>
+        <div id="video-list" class="video-grid"></div>
+        <p id="empty-state" class="muted">No uploaded videos yet.</p>
+    </section>
+</main>
+<script th:src="@{/js/uploader.js}"></script>
+</body>
+</html>
